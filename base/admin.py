@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import CustomUser, Tier
+from .models import CustomUser, Tier, Image
 
 class CustomUserAdmin(UserAdmin):
     list_display = (
@@ -28,3 +28,4 @@ class CustomUserAdmin(UserAdmin):
 
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(Tier)
+admin.site.register(Image)
