@@ -4,12 +4,15 @@ from django.db.models.signals import pre_delete, post_save
 from django.dispatch.dispatcher import receiver
 from PIL import Image as PILImage
 from django.core.validators import MaxValueValidator, MinValueValidator
+import cv2
 import magic
 from django.core.exceptions import ValidationError
 
 
 class Tier(models.Model):
-    name = models.CharField(max_length=50, unique=True)
+    name        = models.CharField(max_length=50, unique=True)
+    original    = models.BooleanField(default=False)
+    links       = models.BooleanField(default=False)
     def __str__(self):
         return self.name
 
@@ -22,8 +25,6 @@ class CustomUser(AbstractUser):
 
 def validate_image(image):
     filetype = magic.from_buffer(image.read())
-    print("BBBBBBBBBBBBBBBBBBBBBBBBB")
-    print(filetype)
     if "PNG" in filetype or "JPEG" in filetype:
         return image
     raise ValidationError("File is not PNG or JPG.")
@@ -51,6 +52,15 @@ def create_thumbnails(sender, instance, **kwargs):
     ret, bw_img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
     cv2.imwrite(f'media/binary/binary{instance.id}.jpg', bw_img)
 
+    sizes = CustomSize.objects.filter(tier=instance.owner.tier)
+    for customsize in sizes:
+        image = PILImage.open(instance.image.url[1::])
+        image.thumbnail((customsize.size, customsize.size))
+        image.save(f'media/customs/{customsize.size}Thumbnail{instance.id}.png')
+        thumb = CustomThumbnail(image=instance, thumbnail=f'customs/{customsize.size}Thumbnail{instance.id}.png')
+        thumb.save()
+
+
     Image.objects.filter(id=instance.id).update(
             thumb200=f'thumbnails_200/200Thumbnail{instance.id}.png',
             thumb400=f'thumbnails_400/400Thumbnail{instance.id}.png',
@@ -69,6 +79,7 @@ def media_images_delete(sender, instance, **kwargs):
 
 
 class Link(models.Model):
+    owner       = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True)
     image       = models.ForeignKey(Image, related_name='links', on_delete=models.CASCADE)
     duration    = models.IntegerField(blank=False, validators=[MaxValueValidator(30000),MinValueValidator(300)])
     url         = models.CharField(max_length=250)
@@ -76,6 +87,23 @@ class Link(models.Model):
 
     def __str__(self):
         return self.url
+
+
+class CustomSize(models.Model):
+    tier        = models.ForeignKey(Tier, related_name='sizes', on_delete=models.CASCADE)
+    size        = models.IntegerField(blank=False)
+
+    def __str__(self):
+        return "size" + " " + str(self.id)
+
+
+class CustomThumbnail(models.Model):
+    image       = models.ForeignKey(Image, related_name='customs', on_delete=models.CASCADE)
+    thumbnail   = models.ImageField(upload_to='images/customs/', blank=True)
+
+    def __str__(self):
+        return "thumbnail" + " " + str(self.id)
+
 
 
 
