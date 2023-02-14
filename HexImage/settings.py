@@ -40,8 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'base',
-    'sorl.thumbnail',
-    'sorl_thumbnail_serializer',
     
 ]
 
