@@ -11,6 +11,8 @@ from django.core.exceptions import ValidationError
 
 class Tier(models.Model):
     name        = models.CharField(max_length=50, unique=True)
+    thumb200    = models.BooleanField(default=False)
+    thumb400    = models.BooleanField(default=False)
     original    = models.BooleanField(default=False)
     links       = models.BooleanField(default=False)
     def __str__(self):
@@ -29,7 +31,6 @@ def validate_image(image):
         return image
     raise ValidationError("File is not PNG or JPG.")
     
-
 class Image(models.Model):
     owner       = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     image       = models.ImageField(upload_to='images/', blank=False, validators=[validate_image])
@@ -103,6 +104,10 @@ class CustomThumbnail(models.Model):
 
     def __str__(self):
         return "thumbnail" + " " + str(self.id)
+
+@receiver(pre_delete, sender=CustomThumbnail)
+def media_images_delete(sender, instance, **kwargs):
+    instance.thumbnail.delete(False)
 
 
 

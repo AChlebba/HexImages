@@ -3,23 +3,70 @@ from django.core.signing import TimestampSigner
 from datetime import timedelta
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
 from .models import CustomUser, Tier, Image, Link, CustomSize, CustomThumbnail
 from .serializers import TierSerializer, LinkSerializer, BasicImageSerializer, PremiumImageSerializer, EnterpriseImageSerializer, CustomImageSerializer, CustomSizeSerializer, CustomThumbnailSerializer
 
 class CustomThumbnailViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     queryset = CustomThumbnail.objects.all()
     serializer_class = CustomThumbnailSerializer
 
+    def get_queryset(self):
+        user = self.request.user
+        user_images = Image.objects.filter(owner_id=user.id).values_list('id', flat=True)
+        return CustomThumbnail.objects.filter(image_id__in = user_images)
+
+    def create(self, request, *args, **kwargs):
+        response = {'message': 'Cannot create here.'}
+        return Response(response, status=status.HTTP_403_FORBIDDEN)
+
+    def update(self, request, pk=None):
+        response = {'message': 'Update function is not offered.'}
+        return Response(response, status=status.HTTP_403_FORBIDDEN)
+
 class CustomSizeViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     queryset = CustomSize.objects.all()
     serializer_class = CustomSizeSerializer
 
+    def create(self, request, *args, **kwargs):
+        response = {'message': 'Cannot create here.'}
+        return Response(response, status=status.HTTP_403_FORBIDDEN)
+
+    def update(self, request, pk=None):
+        response = {'message': 'Update function is not offered.'}
+        return Response(response, status=status.HTTP_403_FORBIDDEN)
+
+    def destroy(self, request, *args, **kwargs):
+        response = {'message': 'Cannot delete here.'}
+        return Response(response, status=status.HTTP_403_FORBIDDEN)
+
 class TierViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     queryset = Tier.objects.all()
     serializer_class = TierSerializer
 
+    def create(self, request, *args, **kwargs):
+        response = {'message': 'Cannot create here.'}
+        return Response(response, status=status.HTTP_403_FORBIDDEN)
+
+    def update(self, request, pk=None):
+        response = {'message': 'Update function is not offered.'}
+        return Response(response, status=status.HTTP_403_FORBIDDEN)
+
+    def destroy(self, request, *args, **kwargs):
+        response = {'message': 'Cannot delete here.'}
+        return Response(response, status=status.HTTP_403_FORBIDDEN)
+
 
 class LinkViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     queryset = Link.objects.all()
     serializer_class = LinkSerializer
 
@@ -31,7 +78,7 @@ class LinkViewSet(viewsets.ModelViewSet):
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         else:
-            response = {'message': 'Link function is not offered.'}
+            response = {'message': 'Link function is not offered in your tier.'}
             return Response(response, status=status.HTTP_403_FORBIDDEN)
 
     def perform_create(self, serializer):
@@ -43,11 +90,7 @@ class LinkViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated:
-            return Link.objects.filter(owner_id=user.id)
-        else:
-            response = {'message': 'User not authenticated.'}
-            return Response(response, status=status.HTTP_403_FORBIDDEN)
+        return Link.objects.filter(owner_id=user.id)
 
     def update(self, request, pk=None):
         response = {'message': 'Update function is not offered.'}
@@ -55,6 +98,8 @@ class LinkViewSet(viewsets.ModelViewSet):
 
 
 class ImageViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     queryset = Image.objects.all()
 
     def update(self, request, pk=None):
@@ -75,11 +120,7 @@ class ImageViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated:
-            return Image.objects.filter(owner_id=user.id)
-        else:
-            response = {'message': 'User not authenticated.'}
-            return Response(response, status=status.HTTP_403_FORBIDDEN)
+        return Image.objects.filter(owner_id=user.id)
 
 def EncodeLink(request, sig):
     signer = TimestampSigner()
