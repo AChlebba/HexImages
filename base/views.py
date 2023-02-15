@@ -3,6 +3,7 @@ from django.core.signing import TimestampSigner
 from datetime import timedelta
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from rest_framework.decorators import api_view
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .models import CustomUser, Tier, Image, Link, CustomSize, CustomThumbnail
@@ -124,6 +125,7 @@ class ImageViewSet(viewsets.ModelViewSet):
         user = self.request.user
         return Image.objects.filter(owner_id=user.id)
 
+@api_view(('GET',))
 def EncodeLink(request, sig):
     signer = TimestampSigner()
     duration = int(signer.unsign(sig))
