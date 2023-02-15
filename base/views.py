@@ -107,6 +107,8 @@ class ImageViewSet(viewsets.ModelViewSet):
         return Response(response, status=status.HTTP_403_FORBIDDEN)
     
     def get_serializer_class(self):
+        if self.request.user.tier == None:
+            return BasicImageSerializer
         if self.request.user.tier.name == "Basic":
             return BasicImageSerializer
         if self.request.user.tier.name == "Premium":

@@ -1,2 +1,9 @@
 docker build --tag python-django .
 docker run --publish 8000:8000 python-django
+
+docker tag python-django adam343/hexrepository:heximages
+docker push adam343/hexrepository:heximages
+
+https://hub.docker.com/r/adam343/hexrepository
+docker pull adam343/hexrepository:heximages
+docker run --publish 8000:8000 adam343/hexrepository:heximages

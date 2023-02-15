@@ -5,7 +5,7 @@ from django.dispatch.dispatcher import receiver
 from PIL import Image as PILImage
 from django.core.validators import MaxValueValidator, MinValueValidator
 import cv2
-import magic
+# import magic
 from django.core.exceptions import ValidationError
 
 
@@ -25,15 +25,16 @@ class CustomUser(AbstractUser):
         return self.username
 
 
-def validate_image(image):
-    filetype = magic.from_buffer(image.read())
-    if "PNG" in filetype or "JPEG" in filetype:
-        return image
-    raise ValidationError("File is not PNG or JPG.")
+# def validate_image(image):
+#     filetype = magic.from_buffer(image.read())
+#     if "PNG" in filetype or "JPEG" in filetype:
+#         return image
+#     raise ValidationError("File is not PNG or JPG.")
     
 class Image(models.Model):
     owner       = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    image       = models.ImageField(upload_to='images/', blank=False, validators=[validate_image])
+    # image       = models.ImageField(upload_to='images/', blank=False, validators=[validate_image])
+    image       = models.ImageField(upload_to='images/', blank=False)
     thumb200    = models.ImageField(upload_to='images/thumbnails200/', blank=True)
     thumb400    = models.ImageField(upload_to='images/thumbnails400/', blank=True)
     binary      = models.ImageField(upload_to='images/binary/', blank=True)
